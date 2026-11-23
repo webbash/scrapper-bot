@@ -1,0 +1,3 @@
+# /etc/cron.d format (including the user column). Install only when ready.
+# At minute 00 each hour. systemd runs the sync as scrapper-bot, not root.
+0 * * * * root /usr/bin/systemctl start --no-block scrapper-bot-sync.service

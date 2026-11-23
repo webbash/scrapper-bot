@@ -1,0 +1,28 @@
+[Unit]
+Description=Scrapper Bot Telegram listener
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=exec
+User=scrapper-bot
+Group=scrapper-bot
+StateDirectory=scrapper-bot
+StateDirectoryMode=0700
+WorkingDirectory=/var/lib/scrapper-bot
+EnvironmentFile=/etc/scrapper-bot/bot.env
+ExecStart=/opt/scrapper-bot/bazaraki-html bot
+Restart=on-failure
+RestartSec=10s
+KillSignal=SIGINT
+TimeoutStopSec=15s
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
