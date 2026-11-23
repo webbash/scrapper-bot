@@ -1,0 +1,30 @@
+name: scrapper-bot
+
+x-app: &app
+  image: scrapper-bot:local
+  build: .
+  env_file: .env
+  environment:
+    HOUSING_DB_PATH: /var/lib/scrapper-bot/housing.sqlite
+  volumes:
+    - housing-data:/var/lib/scrapper-bot
+  read_only: true
+  tmpfs:
+    - /tmp:mode=1777
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  stop_signal: SIGINT
+
+services:
+  bot:
+    <<: *app
+    command: ["bot"]
+    restart: unless-stopped
+
+  sync:
+    <<: *app
+    command: ["sync"]
+    profiles: ["manual"]
+
+volumes:
+  housing-data:

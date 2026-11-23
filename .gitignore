@@ -1,6 +1,7 @@
 /snapshots/
 /bazaraki-html
 /.engram/
+/.idea/
 /.env
 /housing.sqlite
 /housing.sqlite-*

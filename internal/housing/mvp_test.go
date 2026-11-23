@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -31,6 +32,7 @@ type telegramStub struct {
 	deleted        []int64
 	collapsed      []int64
 	collapsedPhoto bool
+	updates        func(context.Context, int64) ([]telegram.Update, error)
 }
 
 func (s *telegramStub) SendText(_ context.Context, chat int64, text, _ string, keyboard *telegram.Keyboard) (telegram.Message, error) {
@@ -59,8 +61,22 @@ func (s *telegramStub) CollapseMessage(_ context.Context, _, id int64, photo boo
 	return nil
 }
 
-func (*telegramStub) Updates(context.Context, int64) ([]telegram.Update, error) {
+func (s *telegramStub) Updates(ctx context.Context, offset int64) ([]telegram.Update, error) {
+	if s.updates != nil {
+		return s.updates(ctx, offset)
+	}
 	return nil, errors.New("not polling during test")
+}
+
+func TestBotRunReturnsFatalTelegramError(t *testing.T) {
+	unauthorized := &telegram.APIError{Code: 401, Description: "Unauthorized"}
+	tg := &telegramStub{updates: func(context.Context, int64) ([]telegram.Update, error) {
+		return nil, unauthorized
+	}}
+	b := Bot{API: tg}
+	if err := b.Run(t.Context(), io.Discard); !errors.Is(err, unauthorized) {
+		t.Fatalf("bot did not exit with the fatal Telegram error: %v", err)
+	}
 }
 
 func sample(t *testing.T, name string) string {
